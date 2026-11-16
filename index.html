@@ -145,26 +145,30 @@
       .node-actions { opacity: 1; top: 10px; right: 10px; gap: 6px; }
       .icon-btn { width: 28px; height: 28px; font-size: 14px; }
       
-      /* 手机端纵向箭头容器 */
+      /* 手机端纵向箭头容器 - 采用 Flex 布局分左右 */
       .mobile-arrow-row {
         width: 100%;
         display: flex;
-        justify-content: flex-start; /* 靠左对齐 */
-        padding-left: 20%; /* 控制箭头位于容器左侧 1/4 处 (20% ~ 25%) */
-        margin: 8px 0;
-        position: relative;
+        align-items: center;
+        margin: 12px 0;
+        padding: 0 10%; /* 控制左右边距 */
+        gap: 16px; /* 箭头和标签的间距 */
       }
+      
+      .mobile-arrow-svg-wrapper {
+        flex-shrink: 0;
+        margin-left: 15%; /* 让箭头稍微靠右，不贴边 */
+      }
+
       .mobile-arrow-svg {
-        width: 30px;
-        height: 60px;
+        display: block;
+        width: 24px;
+        height: 50px;
       }
-      /* 手机端交通标签（放在箭头右侧） */
+      
+      /* 手机端交通标签（自动在右侧） */
       .mobile-transport-label {
-        position: absolute;
-        left: calc(20% + 36px); /* 在箭头右侧 36px */
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
+        display: inline-flex;
         flex-direction: column;
         background: white;
         padding: 4px 12px;
@@ -350,7 +354,7 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'travel_flowchart_data_v36';
+      const STORAGE_KEY = 'travel_flowchart_data_v37';
 
       function getDateStr(offset = 0) {
         const d = new Date();
@@ -372,7 +376,6 @@
         const dataStr = params.get('data');
         if (dataStr) {
           try {
-            // 使用 lz-string 解压
             const decodedStr = LZString.decompressFromEncodedURIComponent(dataStr);
             if (decodedStr) return JSON.parse(decodedStr);
           } catch(e) {
@@ -859,21 +862,23 @@
             const arrowRow = document.createElement('div');
             arrowRow.className = 'mobile-arrow-row';
             
-            // SVG 画直角折线箭头
+            // 箭头容器靠左
+            const svgWrapper = document.createElement('div');
+            svgWrapper.className = 'mobile-arrow-svg-wrapper';
             const svg = document.createElementNS(svgNS, 'svg');
             svg.setAttribute('class', 'mobile-arrow-svg');
             const path = document.createElementNS(svgNS, 'path');
-            // 从 (15, 0) 垂直画到 (15, 60)
-            path.setAttribute('d', 'M 15 0 L 15 60');
+            // 从中间画到中间，让箭头居中
+            path.setAttribute('d', 'M 12 0 L 12 50');
             path.setAttribute('stroke', dayColor);
             path.setAttribute('stroke-width', '2.5');
             path.setAttribute('fill', 'none');
-            // 使用全局 marker
             path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
             svg.appendChild(path);
-            arrowRow.appendChild(svg);
+            svgWrapper.appendChild(svg);
+            arrowRow.appendChild(svgWrapper);
 
-            // 交通信息标签
+            // 标签自动占位在右侧
             const transport = spot.transport || '';
             const transportTime = spot.transportTime || '';
             const label = document.createElement('div');
@@ -952,7 +957,7 @@
             transportGroup.style.display = 'none';
             transportTimeGroup.style.display = 'none';
           }
-          // 这里去掉了自动带入前一段交通的逻辑，默认全空
+          // 前序交通默认全空，由用户自己填写
         } else if (spotIndex === -1) {
           // 添加模式
           title.textContent = '添加地点';
