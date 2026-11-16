@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
   <title>旅游攻略</title>
-  <!-- 引入 html2canvas 用于导出图片 -->
+  <!-- 引入 html2canvas 用于导出图片，引入 lz-string 用于极限压缩分享链接 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
     body { background: #F7F9FC; color: #0A2540; padding: 24px 16px 100px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
@@ -44,9 +45,10 @@
     .spot-arrive { background: #0A2540; color: white; font-size: 0.75rem; font-weight: 500; padding: 4px 12px; border-radius: 40px; display: inline-block; }
     .spot-duration { border: 1.2px solid #8FA8C8; color: #1B2A4A; background: #F7F9FC; font-size: 0.7rem; font-weight: 500; padding: 3px 12px; border-radius: 40px; display: inline-block; }
     
-    .node-actions { position: absolute; top: 8px; right: 10px; display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s; }
+    /* 节点操作按钮组 */
+    .node-actions { position: absolute; top: 8px; right: 10px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
     .spot-node:hover .node-actions { opacity: 1; }
-    .icon-btn { background: white; border: 1.2px solid #0A2540; color: #0A2540; width: 26px; height: 26px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); padding: 0; line-height: 1; }
+    .icon-btn { background: white; border: 1.2px solid #0A2540; color: #0A2540; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); padding: 0; line-height: 1; }
     .icon-btn:hover { background: #0A2540; color: white; }
     
     /* 箭头图层 */
@@ -135,12 +137,44 @@
       .spots-area { padding: 20px 10px 30px; }
       
       /* 手机端单列节点 */
-      .spot-node { width: 90% !important; max-width: 320px; margin: 0 auto; border-radius: 16px; padding: 16px; align-items: center; text-align: center; }
+      .spot-node { width: 85% !important; max-width: 300px; margin: 0 auto; border-radius: 16px; padding: 16px 12px; align-items: center; text-align: center; }
       .spot-name { font-size: 1.1rem; padding-right: 0; text-align: center; margin-bottom: 4px; }
       .spot-meta { justify-content: center; width: 100%; gap: 6px; }
       
-      .node-actions { opacity: 1; top: 10px; right: 10px; }
+      /* 操作按钮组 */
+      .node-actions { opacity: 1; top: 10px; right: 10px; gap: 6px; }
       .icon-btn { width: 28px; height: 28px; font-size: 14px; }
+      
+      /* 手机端纵向箭头容器 */
+      .mobile-arrow-row {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start; /* 靠左对齐 */
+        padding-left: 20%; /* 控制箭头位于容器左侧 1/4 处 (20% ~ 25%) */
+        margin: 8px 0;
+        position: relative;
+      }
+      .mobile-arrow-svg {
+        width: 30px;
+        height: 60px;
+      }
+      /* 手机端交通标签（放在箭头右侧） */
+      .mobile-transport-label {
+        position: absolute;
+        left: calc(20% + 36px); /* 在箭头右侧 36px */
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        background: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        box-shadow: 0 2px 6px rgba(10,37,64,0.1);
+        border: 1px solid rgba(10,37,64,0.15);
+        font-size: 0.75rem;
+        color: #0A2540;
+        white-space: nowrap;
+      }
       
       .bottom-add-day-container {
         position: fixed;
@@ -220,6 +254,7 @@
             <span class="fixed-suffix">小时</span>
           </div>
         </div>
+        <!-- 前序交通 -->
         <div class="form-group" id="transportGroup">
           <label>交通方式（从上一地点到此处）</label>
           <div class="input-with-fixed">
@@ -227,12 +262,27 @@
           </div>
         </div>
         <div class="form-group" id="transportTimeGroup">
-          <label>交通耗时</label>
+          <label>交通耗时（从上一地点到此处）</label>
           <div class="input-with-fixed">
             <input type="number" id="spotTransportTimeInput" class="time-input" min="0" step="1" placeholder="25" style="width:100px; text-align:center;">
             <span class="fixed-suffix">分钟</span>
           </div>
         </div>
+        <!-- 后序交通（仅在插入模式时显示） -->
+        <div class="form-group" id="nextTransportGroup" style="display: none;">
+          <label>交通方式（从此处到下一地点）</label>
+          <div class="input-with-fixed">
+            <input type="text" id="nextSpotTransportInput" placeholder="例如：步行" style="flex:1;">
+          </div>
+        </div>
+        <div class="form-group" id="nextTransportTimeGroup" style="display: none;">
+          <label>交通耗时（从此处到下一地点）</label>
+          <div class="input-with-fixed">
+            <input type="number" id="nextSpotTransportTimeInput" class="time-input" min="0" step="1" placeholder="10" style="width:100px; text-align:center;">
+            <span class="fixed-suffix">分钟</span>
+          </div>
+        </div>
+        
         <div class="modal-actions">
           <button type="button" class="btn-sm" id="cancelSpotBtn">取消</button>
           <button type="button" class="btn-sm btn-sm-primary" id="saveSpotBtn">保存</button>
@@ -300,7 +350,7 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'travel_flowchart_data_v32';
+      const STORAGE_KEY = 'travel_flowchart_data_v36';
 
       function getDateStr(offset = 0) {
         const d = new Date();
@@ -322,8 +372,9 @@
         const dataStr = params.get('data');
         if (dataStr) {
           try {
-            const decodedStr = decodeURIComponent(escape(window.atob(dataStr)));
-            return JSON.parse(decodedStr);
+            // 使用 lz-string 解压
+            const decodedStr = LZString.decompressFromEncodedURIComponent(dataStr);
+            if (decodedStr) return JSON.parse(decodedStr);
           } catch(e) {
             console.error('解析分享数据失败', e);
           }
@@ -334,6 +385,7 @@
       const urlData = getDataFromUrl();
       let state = urlData || loadFromStorage() || defaultData;
       let activeTransportTarget = null;
+      let insertMode = { dayIndex: -1, spotIndex: -1, isInserting: false };
 
       function loadFromStorage() {
         try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
@@ -545,10 +597,12 @@
                     <span class="spot-duration">${spot.duration || '时长未定'}</span>
                   </div>
                   <div class="node-actions">
+                    <button class="icon-btn insert-spot" title="在此前插入地点" data-day="${dayIndex}" data-spot="${originalIndex}">↩</button>
                     <button class="icon-btn edit-spot" title="编辑地点" data-day="${dayIndex}" data-spot="${originalIndex}">✎</button>
                     <button class="icon-btn delete-spot" title="删除地点" data-day="${dayIndex}" data-spot="${originalIndex}">✕</button>
                   </div>`;
 
+                node.querySelector('.insert-spot').addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, originalIndex, true); });
                 node.querySelector('.edit-spot').addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, originalIndex); });
                 node.querySelector('.delete-spot').addEventListener('click', (e) => { e.stopPropagation(); deleteSpot(dayIndex, originalIndex); });
 
@@ -773,13 +827,14 @@
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:10px 0;position:relative;';
 
+        const svgNS = 'http://www.w3.org/2000/svg';
+
         spots.forEach((spot, i) => {
           const node = document.createElement('div');
           node.className = 'spot-node';
           node.style.borderColor = dayColor;
           node.dataset.dayIndex = dayIndex;
           node.dataset.spotIndex = i;
-          node.id = `mobile-node-${dayIndex}-${i}`;
           
           node.innerHTML = `
             <div class="spot-name">${spot.name || '未命名'}</div>
@@ -788,105 +843,87 @@
               <span class="spot-duration">${spot.duration || '时长未定'}</span>
             </div>
             <div class="node-actions">
+              <button class="icon-btn insert-spot" title="在此前插入地点" data-day="${dayIndex}" data-spot="${i}">↩</button>
               <button class="icon-btn edit-spot" title="编辑地点" data-day="${dayIndex}" data-spot="${i}">✎</button>
               <button class="icon-btn delete-spot" title="删除地点" data-day="${dayIndex}" data-spot="${i}">✕</button>
             </div>`;
 
+          node.querySelector('.insert-spot').addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, i, true); });
           node.querySelector('.edit-spot').addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, i); });
           node.querySelector('.delete-spot').addEventListener('click', (e) => { e.stopPropagation(); deleteSpot(dayIndex, i); });
           
           wrapper.appendChild(node);
 
+          // 如果不是最后一个，画连接线
           if (i < spots.length - 1) {
-            const arrowSpace = document.createElement('div');
-            arrowSpace.style.cssText = 'width: 100%; height: 70px; position: relative;';
-            wrapper.appendChild(arrowSpace);
+            const arrowRow = document.createElement('div');
+            arrowRow.className = 'mobile-arrow-row';
+            
+            // SVG 画直角折线箭头
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.setAttribute('class', 'mobile-arrow-svg');
+            const path = document.createElementNS(svgNS, 'path');
+            // 从 (15, 0) 垂直画到 (15, 60)
+            path.setAttribute('d', 'M 15 0 L 15 60');
+            path.setAttribute('stroke', dayColor);
+            path.setAttribute('stroke-width', '2.5');
+            path.setAttribute('fill', 'none');
+            // 使用全局 marker
+            path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
+            svg.appendChild(path);
+            arrowRow.appendChild(svg);
+
+            // 交通信息标签
+            const transport = spot.transport || '';
+            const transportTime = spot.transportTime || '';
+            const label = document.createElement('div');
+            label.className = 'mobile-transport-label';
+            label.innerHTML = `<span class="trans-mode">${transport || '—'}</span><span class="trans-time" style="font-size:0.65rem; color:#5B6B85">${transportTime || '—'}</span>`;
+            if (!transport && !transportTime) label.classList.add('empty-placeholder');
+            label.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, i); });
+            
+            arrowRow.appendChild(label);
+            wrapper.appendChild(arrowRow);
           }
         });
 
         container.style.height = 'auto';
         container.appendChild(wrapper);
 
-        // 计算并绘制 SVG 箭头
-        setTimeout(() => {
-          const svgNS = 'http://www.w3.org/2000/svg';
-          const svg = document.createElementNS(svgNS, 'svg');
-          svg.setAttribute('class', 'arrow-layer');
-          svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;';
-
-          const defs = document.createElementNS(svgNS, 'defs');
-          const marker = document.createElementNS(svgNS, 'marker');
-          marker.setAttribute('id', `arrowhead-mobile-${dayIndex}`);
-          marker.setAttribute('markerWidth', '8');
-          marker.setAttribute('markerHeight', '8');
-          marker.setAttribute('refX', '4');
-          marker.setAttribute('refY', '7');
-          marker.setAttribute('orient', 'auto');
-          const mp = document.createElementNS(svgNS, 'path');
-          mp.setAttribute('d', 'M0,0 L8,0 L4,8 Z');
-          mp.setAttribute('fill', dayColor);
-          marker.appendChild(mp);
-          defs.appendChild(marker);
-          svg.appendChild(defs);
-
-          const containerRect = wrapper.getBoundingClientRect();
-
-          for (let i = 0; i < spots.length - 1; i++) {
-            const node1 = document.getElementById(`mobile-node-${dayIndex}-${i}`);
-            const node2 = document.getElementById(`mobile-node-${dayIndex}-${i+1}`);
-            if (!node1 || !node2) continue;
-
-            const rect1 = node1.getBoundingClientRect();
-            const rect2 = node2.getBoundingClientRect();
-
-            // 箭头在容器宽度的左边 1/4 处
-            const arrowX = containerRect.width * 0.25;
-            const startY = rect1.bottom - containerRect.top;
-            const endY = rect2.top - containerRect.top;
-
-            // 画线
-            const path = document.createElementNS(svgNS, 'path');
-            path.setAttribute('d', `M ${arrowX} ${startY} L ${arrowX} ${endY}`);
-            path.setAttribute('stroke', dayColor);
-            path.setAttribute('stroke-width', '2.5');
-            path.setAttribute('fill', 'none');
-            path.setAttribute('marker-end', `url(#arrowhead-mobile-${dayIndex})`);
-            path.style.pointerEvents = 'stroke';
-            path.style.cursor = 'pointer';
-            svg.appendChild(path);
-
-            const spotIndex = i;
-            const transport = spots[i].transport || '';
-            const transportTime = spots[i].transportTime || '';
-
-            // 添加交通标签 (靠右放置)
-            const label = document.createElement('div');
-            label.className = 'transport-label';
-            label.innerHTML = `<span class="trans-mode">${transport || '—'}</span><span class="trans-time">${transportTime || '—'}</span>`;
-            if (!transport && !transportTime) label.classList.add('empty-placeholder');
-            label.style.position = 'absolute';
-            label.style.left = (arrowX + 15) + 'px'; 
-            label.style.top = (startY + (endY - startY) / 2 - 15) + 'px';
-            label.style.zIndex = '5';
-            label.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, spotIndex); });
-            wrapper.appendChild(label);
-
-            // 点击线也能触发
-            path.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, spotIndex); });
-          }
-
-          container.appendChild(svg);
-        }, 50);
+        // 注入 marker
+        const oldSvg = container.querySelector('.arrow-layer');
+        if (oldSvg) oldSvg.remove();
+        const defsSvg = document.createElementNS(svgNS, 'svg');
+        defsSvg.setAttribute('class', 'arrow-layer');
+        defsSvg.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;pointer-events:none;';
+        const defs = document.createElementNS(svgNS, 'defs');
+        const marker = document.createElementNS(svgNS, 'marker');
+        marker.setAttribute('id', `arrowhead-${dayIndex}`);
+        marker.setAttribute('markerWidth', '8');
+        marker.setAttribute('markerHeight', '8');
+        marker.setAttribute('refX', '4');
+        marker.setAttribute('refY', '7');
+        marker.setAttribute('orient', 'auto');
+        const mp = document.createElementNS(svgNS, 'path');
+        mp.setAttribute('d', 'M0,0 L8,0 L4,8 Z'); // 向下箭头
+        mp.setAttribute('fill', dayColor);
+        marker.appendChild(mp);
+        defs.appendChild(marker);
+        defsSvg.appendChild(defs);
+        container.appendChild(defsSvg);
       }
 
       function rerenderAll() { render(); saveToStorage(); }
 
       // ---------- 弹窗控制 ----------
-      function openSpotModal(dayIndex, spotIndex) {
+      function openSpotModal(dayIndex, spotIndex, isInsert = false) {
         const modal = document.getElementById('spotModal');
         const title = document.getElementById('modalTitle');
+        
         document.getElementById('editDayIndex').value = dayIndex;
         document.getElementById('editSpotIndex').value = spotIndex;
+        
+        insertMode = { dayIndex, spotIndex, isInserting: isInsert };
 
         document.getElementById('spotNameInput').value = '';
         document.getElementById('spotArriveHour').value = '';
@@ -894,29 +931,47 @@
         document.getElementById('spotDurationValue').value = '';
         document.getElementById('spotTransportInput').value = '';
         document.getElementById('spotTransportTimeInput').value = '';
-
-        let isFirstSpot = false;
-        if (spotIndex === -1) {
-          isFirstSpot = (state[dayIndex].spots.length === 0);
-        } else {
-          isFirstSpot = (spotIndex === 0);
-        }
+        document.getElementById('nextSpotTransportInput').value = '';
+        document.getElementById('nextSpotTransportTimeInput').value = '';
 
         const transportGroup = document.getElementById('transportGroup');
         const transportTimeGroup = document.getElementById('transportTimeGroup');
-        
-        if (isFirstSpot) {
-          transportGroup.style.display = 'none';
-          transportTimeGroup.style.display = 'none';
-        } else {
+        const nextTransportGroup = document.getElementById('nextTransportGroup');
+        const nextTransportTimeGroup = document.getElementById('nextTransportTimeGroup');
+
+        if (isInsert) {
+          // 插入模式：显示前后两段交通
+          title.textContent = '插入新地点';
           transportGroup.style.display = 'block';
           transportTimeGroup.style.display = 'block';
-        }
-
-        if (spotIndex === -1) {
+          nextTransportGroup.style.display = 'block';
+          nextTransportTimeGroup.style.display = 'block';
+          
+          if (spotIndex === 0) {
+            // 插在第一位，前一段隐藏
+            transportGroup.style.display = 'none';
+            transportTimeGroup.style.display = 'none';
+          }
+          // 这里去掉了自动带入前一段交通的逻辑，默认全空
+        } else if (spotIndex === -1) {
+          // 添加模式
           title.textContent = '添加地点';
+          nextTransportGroup.style.display = 'none';
+          nextTransportTimeGroup.style.display = 'none';
+          
+          if (state[dayIndex].spots.length === 0) {
+            transportGroup.style.display = 'none';
+            transportTimeGroup.style.display = 'none';
+          } else {
+            transportGroup.style.display = 'block';
+            transportTimeGroup.style.display = 'block';
+          }
         } else {
+          // 编辑模式
           title.textContent = '编辑地点';
+          nextTransportGroup.style.display = 'none';
+          nextTransportTimeGroup.style.display = 'none';
+          
           const spot = state[dayIndex].spots[spotIndex];
           document.getElementById('spotNameInput').value = spot.name || '';
           if (spot.arriveTime && spot.arriveTime.includes(':')) {
@@ -924,14 +979,17 @@
             document.getElementById('spotArriveHour').value = h;
             document.getElementById('spotArriveMinute').value = m;
           }
-          const durVal = parseDuration(spot.duration);
-          document.getElementById('spotDurationValue').value = durVal;
+          document.getElementById('spotDurationValue').value = parseDuration(spot.duration);
           
           if (spotIndex > 0) {
+            transportGroup.style.display = 'block';
+            transportTimeGroup.style.display = 'block';
             const prevSpot = state[dayIndex].spots[spotIndex - 1];
             document.getElementById('spotTransportInput').value = prevSpot.transport || '';
-            const transTimeVal = parseTransportTime(prevSpot.transportTime);
-            document.getElementById('spotTransportTimeInput').value = transTimeVal;
+            document.getElementById('spotTransportTimeInput').value = parseTransportTime(prevSpot.transportTime);
+          } else {
+            transportGroup.style.display = 'none';
+            transportTimeGroup.style.display = 'none';
           }
         }
         modal.classList.add('active');
@@ -1139,12 +1197,11 @@
 
         document.getElementById('shareBtn').addEventListener('click', () => {
           const jsonStr = JSON.stringify(state);
-          const encodedData = window.btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-              return String.fromCharCode('0x' + p1);
-          }));
+          // 使用 LZString 极限压缩
+          const compressed = LZString.compressToEncodedURIComponent(jsonStr);
           
           const baseUrl = window.location.origin + window.location.pathname;
-          const shareUrl = `${baseUrl}?data=${encodedData}`;
+          const shareUrl = `${baseUrl}?data=${compressed}`;
           
           document.getElementById('shareUrlInput').value = shareUrl;
           document.getElementById('shareModal').classList.add('active');
@@ -1163,6 +1220,7 @@
           document.getElementById('shareModal').classList.remove('active');
         });
 
+        // 保存（新增、编辑、插入统一逻辑）
         document.getElementById('saveSpotBtn').addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
@@ -1182,35 +1240,53 @@
           if (!durVal) { alert('请输入游玩时长'); return; }
           const duration = `${durVal}小时`;
 
-          const isFirst = (spotIndex === 0 || (spotIndex === -1 && state[dayIndex].spots.length === 0));
-          const transport = isFirst ? '' : document.getElementById('spotTransportInput').value.trim();
-          let transTimeVal = isFirst ? '' : document.getElementById('spotTransportTimeInput').value.trim();
+          const transport = document.getElementById('spotTransportInput').value.trim();
+          let transTimeVal = document.getElementById('spotTransportTimeInput').value.trim();
           const transportTime = transTimeVal ? `${transTimeVal}分钟` : '';
+
+          // 获取后一段交通（仅在插入模式有效）
+          const nextTransport = document.getElementById('nextSpotTransportInput').value.trim();
+          let nextTransTimeVal = document.getElementById('nextSpotTransportTimeInput').value.trim();
+          const nextTransportTime = nextTransTimeVal ? `${nextTransTimeVal}分钟` : '';
 
           if (!name) { alert('请输入地点名称'); return; }
           if (isNaN(dayIndex) || !state[dayIndex]) { alert('数据异常，请刷新页面'); return; }
 
-          if (spotIndex === -1) {
+          if (insertMode.isInserting) {
+            // === 插入模式 ===
             const newSpot = {
-              name,
-              arriveTime,
-              duration,
-              transport: '',
-              transportTime: ''
+              name, arriveTime, duration, 
+              transport: nextTransport, 
+              transportTime: nextTransportTime
+            };
+            
+            if (spotIndex > 0) {
+              // 前面的地点到新地点的交通
+              state[dayIndex].spots[spotIndex - 1].transport = transport;
+              state[dayIndex].spots[spotIndex - 1].transportTime = transportTime;
+            }
+            
+            state[dayIndex].spots.splice(spotIndex, 0, newSpot);
+          } 
+          else if (spotIndex === -1) {
+            // === 新增模式 ===
+            const newSpot = {
+              name, arriveTime, duration, transport: '', transportTime: ''
             };
             state[dayIndex].spots.push(newSpot);
             const newIdx = state[dayIndex].spots.length - 1;
-            if (newIdx > 0 && !isFirst) {
+            if (newIdx > 0) {
               state[dayIndex].spots[newIdx - 1].transport = transport;
               state[dayIndex].spots[newIdx - 1].transportTime = transportTime;
             }
-          } else {
-            if (!state[dayIndex].spots[spotIndex]) { alert('地点不存在'); return; }
+          } 
+          else {
+            // === 编辑模式 ===
             const spot = state[dayIndex].spots[spotIndex];
             spot.name = name;
             spot.arriveTime = arriveTime;
             spot.duration = duration;
-            if (spotIndex > 0 && !isFirst) {
+            if (spotIndex > 0) {
               state[dayIndex].spots[spotIndex - 1].transport = transport;
               state[dayIndex].spots[spotIndex - 1].transportTime = transportTime;
             }
