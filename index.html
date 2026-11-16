@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>旅游攻略</title>
+  <!-- 引入 html2canvas 用于导出图片 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    body { background: #F7F9FC; color: #0A2540; padding: 24px 16px 80px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    .app { width: 100%; max-width: 1920px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 0 8px; }
+    /* 标题修改为加粗 */
+    .page-header h1 { font-weight: 700; font-size: 2rem; letter-spacing: 1px; color: #0A2540; border-left: 6px solid #C9A227; padding-left: 18px; }
+    .global-actions { display: flex; gap: 12px; }
+    .btn { border: none; border-radius: 30px; padding: 10px 22px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; background: white; color: #0A2540; border: 1.5px solid #0A2540; box-shadow: 0 2px 8px rgba(10,37,64,0.08); }
+    .btn-primary { background: #0A2540; color: white; border: 1.5px solid #0A2540; }
+    .btn-primary:hover { background: #1B2A4A; border-color: #1B2A4A; }
+    .btn:hover { background: #0A2540; color: white; }
+    .day-section { background: white; border-radius: 24px; box-shadow: 0 2px 8px rgba(10,37,64,0.08); overflow: hidden; }
+    .day-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 26px; background: var(--day-color, #0A2540); color: white; flex-wrap: wrap; gap: 12px; }
+    .day-title { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .day-num { font-weight: 600; font-size: 1.3rem; }
+    .day-date { font-size: 1rem; opacity: 0.95; cursor: pointer; border-bottom: 1px dashed rgba(255,255,255,0.6); padding: 2px 4px; }
+    .day-date:hover { border-bottom-color: white; }
+    
+    /* 右侧按钮组 */
+    .day-header-right { display: flex; align-items: center; gap: 6px; }
+    .day-header .btn-action { background: transparent; border: 1.5px solid white; color: white; border-radius: 30px; padding: 5px 14px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s; box-shadow: none; white-space: nowrap; }
+    .day-header .btn-action:hover { background: white; color: var(--day-color, #0A2540); }
+    .day-header .btn-theme { background: transparent; border: 1.5px solid white; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: all 0.15s; box-shadow: none; padding: 0; flex-shrink: 0; }
+    .day-header .btn-theme:hover { background: white; color: var(--day-color, #0A2540); }
+    .day-header .btn-delete-day { background: transparent; border: 1.5px solid rgba(255,255,255,0.6); color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.15s; box-shadow: none; padding: 0; flex-shrink: 0; line-height: 1; }
+    .day-header .btn-delete-day:hover { background: rgba(255,255,255,0.2); border-color: white; }
+
+    .spots-area { padding: 24px 20px 32px; position: relative; background: white; min-height: 140px; }
+    .flow-container { position: relative; width: 100%; }
+    .spot-node { width: 200px; min-width: 160px; background: white; border: 1.8px solid #0A2540; border-radius: 100px; padding: 14px 12px 14px 22px; box-shadow: 0 2px 8px rgba(10,37,64,0.08); position: relative; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
+    .spot-name { font-weight: 600; font-size: 1.2rem; color: #0A2540; line-height: 1.3; padding-right: 40px; word-break: break-word; }
+    .spot-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .spot-arrive { background: #0A2540; color: white; font-size: 0.75rem; font-weight: 500; padding: 4px 12px; border-radius: 40px; display: inline-block; }
+    .spot-duration { border: 1.2px solid #8FA8C8; color: #1B2A4A; background: #F7F9FC; font-size: 0.7rem; font-weight: 500; padding: 3px 12px; border-radius: 40px; display: inline-block; }
+    .node-actions { position: absolute; top: 8px; right: 10px; display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s; }
+    .spot-node:hover .node-actions { opacity: 1; }
+    .icon-btn { background: white; border: 1.2px solid #0A2540; color: #0A2540; width: 26px; height: 26px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); padding: 0; line-height: 1; }
+    .icon-btn:hover { background: #0A2540; color: white; }
+    .arrow-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .arrow-layer svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .transport-label { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: rgba(255,255,255,0.9); backdrop-filter: blur(2px); padding: 2px 10px; border-radius: 40px; box-shadow: 0 2px 6px rgba(10,37,64,0.1); border: 1px solid rgba(10,37,64,0.15); pointer-events: auto; cursor: pointer; font-size: 0.75rem; color: #0A2540; white-space: nowrap; z-index: 5; line-height: 1.4; min-width: 70px; text-align: center; }
+    .transport-label:hover { background: white; border-color: #0A2540; }
+    .transport-label .trans-mode { font-weight: 600; color: #0A2540; font-size: 0.8rem; }
+    .transport-label .trans-time { color: #5B6B85; font-size: 0.7rem; }
+    .transport-label.empty-placeholder { opacity: 0.5; font-style: italic; border-style: dashed; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,37,64,0.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; visibility: hidden; opacity: 0; transition: opacity 0.2s, visibility 0.2s; }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-card { background: white; border-radius: 28px; box-shadow: 0 20px 40px rgba(10,37,64,0.2); padding: 28px 26px; max-width: 420px; width: 90%; border: 1px solid rgba(10,37,64,0.1); }
+    .modal-card h3 { color: #0A2540; font-size: 1.4rem; margin-bottom: 20px; font-weight: 500; border-left: 4px solid #C9A227; padding-left: 12px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 500; color: #1B2A4A; margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 10px 14px; border: 1.5px solid #D0D8E5; border-radius: 40px; font-size: 0.95rem; color: #0A2540; background: #F7F9FC; outline: none; }
+    .form-group input:focus { border-color: #0A2540; background: white; }
+    .input-with-fixed { display: flex; align-items: center; gap: 8px; }
+    .input-with-fixed input { flex: 1; }
+    .fixed-suffix { color: #5B6B85; font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
+    .fixed-prefix { color: #5B6B85; font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
+    .time-input { -moz-appearance: textfield; appearance: auto; }
+    .time-input::-webkit-outer-spin-button,
+    .time-input::-webkit-inner-spin-button { -webkit-appearance: inner-spin-button; opacity: 1; }
+    .date-input-fixed { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .date-input-fixed input { width: 70px; text-align: center; }
+    .date-input-fixed .dash { color: #5B6B85; font-weight: 600; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+    .btn-sm { padding: 8px 20px; font-size: 0.9rem; border-radius: 40px; border: 1.5px solid #0A2540; background: white; color: #0A2540; cursor: pointer; font-weight: 500; }
+    .btn-sm-primary { background: #0A2540; color: white; }
+    .btn-sm-primary:hover { background: #163A5F; }
+    .btn-sm:hover { background: #0A2540; color: white; }
+    .transport-popover { position: fixed; background: white; border-radius: 20px; box-shadow: 0 12px 30px rgba(10,37,64,0.25); padding: 16px; width: 240px; border: 1px solid rgba(10,37,64,0.15); z-index: 2000; display: none; }
+    .transport-popover.active { display: block; }
+    .transport-popover .form-group { margin-bottom: 10px; }
+    .transport-popover input { padding: 8px 12px; font-size: 0.85rem; border-radius: 30px; }
+    .popover-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+    .color-picker-modal .modal-card { max-width: 360px; }
+    .color-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .color-swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.selected { border-color: #0A2540; box-shadow: 0 0 0 2px white, 0 0 0 4px #0A2540; }
+    .color-custom-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .color-custom-row input[type="color"] { width: 50px; height: 40px; border: 1.5px solid #D0D8E5; border-radius: 12px; padding: 2px; cursor: pointer; background: white; }
+    .color-custom-row span { font-size: 0.85rem; color: #5B6B85; }
+    .popover-actions-center { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
+    
+    /* 导出截图时的优化 */
+    .exporting .node-actions { display: none !important; }
+    .exporting .btn-action { display: none !important; }
+    .exporting .btn-theme { display: none !important; }
+    .exporting .btn-delete-day { display: none !important; }
+
+    @media (max-width: 768px) {
+      body { padding: 16px 8px 60px; }
+      .page-header h1 { font-size: 1.5rem; }
+      .spot-node { width: 160px; min-width: 140px; padding: 12px 8px 12px 16px; }
+      .spot-name { font-size: 1rem; padding-right: 30px; }
+      .day-header { padding: 12px 16px; }
+      .day-num { font-size: 1.1rem; }
+      .day-date { font-size: 0.9rem; }
+      .day-header-right { gap: 4px; }
+      .day-header .btn-action { padding: 4px 10px; font-size: 0.75rem; }
+      .day-header .btn-theme, .day-header .btn-delete-day { width: 26px; height: 26px; font-size: 14px; }
+      .transport-label { font-size: 0.65rem; padding: 2px 6px; min-width: 55px; }
+      .color-swatch { width: 30px; height: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="appContainer">
+    <div class="page-header">
+      <h1>旅游攻略</h1>
+      <div class="global-actions">
+        <button class="btn btn-primary" id="addDayBtn">+ 添加一天</button>
+        <button class="btn" id="exportImgBtn" style="border-color: #C9A227; color: #C9A227;">保存为图片</button>
+        <button class="btn" id="exportBtn">导出 JSON</button>
+      </div>
+    </div>
+    <div id="daysContainer" class="app" style="gap: 28px; width:100%;"></div>
+    <div style="display: flex; justify-content: center; margin-top: 8px;">
+      <button class="btn btn-primary" id="addDayBtnBottom">+ 添加一天</button>
+    </div>
+  </div>
+
+  <!-- 添加/编辑地点弹窗 -->
+  <div class="modal-overlay" id="spotModal">
+    <div class="modal-card">
+      <h3 id="modalTitle">添加地点</h3>
+      <form id="spotForm" onsubmit="return false;">
+        <input type="hidden" id="editDayIndex" value="-1">
+        <input type="hidden" id="editSpotIndex" value="-1">
+        <div class="form-group">
+          <label>地点名称</label>
+          <input type="text" id="spotNameInput" required placeholder="例如：西湖">
+        </div>
+        <div class="form-group">
+          <label>到达时间</label>
+          <div class="input-with-fixed">
+            <input type="number" id="spotArriveHour" class="time-input" min="0" max="23" step="1" placeholder="09" style="width:70px; text-align:center;">
+            <span class="fixed-prefix">:</span>
+            <input type="number" id="spotArriveMinute" class="time-input" min="0" max="59" step="1" placeholder="00" style="width:70px; text-align:center;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>游玩时长</label>
+          <div class="input-with-fixed">
+            <input type="number" id="spotDurationValue" class="time-input" min="0" step="0.5" placeholder="2" style="width:100px; text-align:center;">
+            <span class="fixed-suffix">小时</span>
+          </div>
+        </div>
+        <div class="form-group" id="transportGroup">
+          <label>交通方式（从上一地点到此处）</label>
+          <div class="input-with-fixed">
+            <input type="text" id="spotTransportInput" placeholder="例如：地铁" style="flex:1;">
+          </div>
+        </div>
+        <div class="form-group" id="transportTimeGroup">
+          <label>交通耗时</label>
+          <div class="input-with-fixed">
+            <input type="number" id="spotTransportTimeInput" class="time-input" min="0" step="1" placeholder="25" style="width:100px; text-align:center;">
+            <span class="fixed-suffix">分钟</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-sm" id="cancelSpotBtn">取消</button>
+          <button type="button" class="btn-sm btn-sm-primary" id="saveSpotBtn">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 日期编辑弹窗 -->
+  <div class="modal-overlay" id="dateModal">
+    <div class="modal-card">
+      <h3>编辑日期</h3>
+      <form id="dateForm" onsubmit="return false;">
+        <input type="hidden" id="editDateDayIndex" value="-1">
+        <div class="form-group">
+          <label>日期</label>
+          <div class="date-input-fixed">
+            <input type="number" id="dateYearInput" class="time-input" min="1900" max="2100" step="1" placeholder="2024">
+            <span class="dash">-</span>
+            <input type="number" id="dateMonthInput" class="time-input" min="1" max="12" step="1" placeholder="10">
+            <span class="dash">-</span>
+            <input type="number" id="dateDayInput" class="time-input" min="1" max="31" step="1" placeholder="01">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-sm" id="cancelDateBtn">取消</button>
+          <button type="button" class="btn-sm btn-sm-primary" id="saveDateBtn">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 主题色选择弹窗 -->
+  <div class="modal-overlay color-picker-modal" id="colorModal">
+    <div class="modal-card">
+      <h3>修改主题色</h3>
+      <input type="hidden" id="editColorDayIndex" value="-1">
+      <div class="color-grid" id="colorGrid"></div>
+      <div class="color-custom-row">
+        <input type="color" id="customColorInput" value="#0A2540">
+        <span>自定义颜色</span>
+      </div>
+      <div class="popover-actions-center">
+        <button type="button" class="btn-sm" id="cancelColorBtn">取消</button>
+        <button type="button" class="btn-sm btn-sm-primary" id="saveColorBtn">应用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 交通编辑浮层 -->
+  <div class="transport-popover" id="transportPopover">
+    <div class="form-group"><label>交通工具</label><input type="text" id="transportModeInput" placeholder="例如：地铁"></div>
+    <div class="form-group">
+      <label>耗时</label>
+      <div class="input-with-fixed">
+        <input type="number" id="transportTimeInput" class="time-input" min="0" step="1" placeholder="25" style="width:100px; text-align:center;">
+        <span class="fixed-suffix">分钟</span>
+      </div>
+    </div>
+    <div class="popover-actions">
+      <button class="btn-sm" id="cancelTransportBtn" style="padding:4px 12px;">取消</button>
+      <button class="btn-sm btn-sm-primary" id="saveTransportBtn" style="padding:4px 16px;">保存</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const STORAGE_KEY = 'travel_flowchart_data_v28';
+
+      function getDateStr(offset = 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + offset);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      const defaultData = [
+        { day: 1, date: getDateStr(0), spots: [] },
+        { day: 2, date: getDateStr(1), spots: [] },
+        { day: 3, date: getDateStr(2), spots: [] }
+      ];
+
+      let state = loadFromStorage() || defaultData;
+      let activeTransportTarget = null;
+
+      function loadFromStorage() {
+        try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
+      }
+      function saveToStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+      const dayColors = ['#0A2540', '#163A5F', '#24507A', '#2E5F8A', '#3A6F9C', '#4A7FAC'];
+      const PRESET_COLORS = [
+        '#0A2540', '#EF4444', '#F97316', '#F59E0B', '#10B981', '#06B6D4', 
+        '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#78350F', '#1F2937', '#6B7280'
+      ];
+
+      function getDayColor(dayIndex) {
+        if (state[dayIndex] && state[dayIndex].themeColor) {
+          return state[dayIndex].themeColor;
+        }
+        return dayColors[dayIndex % dayColors.length];
+      }
+
+      const NODE_SPACING = 290;
+      function calcPerRow(w) { let n = Math.floor(w / NODE_SPACING); if (n < 2) n = 2; if (n > 10) n = 10; return n; }
+
+      function parseDuration(str) {
+        if (!str) return '';
+        const match = str.match(/^([\d.]+)/);
+        return match ? match[1] : '';
+      }
+
+      function parseTransportTime(str) {
+        if (!str) return '';
+        const match = str.match(/^(\d+)/);
+        return match ? match[1] : '';
+      }
+
+      function setupTimeInputLoop(inputEl, min, max) {
+        function clampAndLoop(v) {
+          if (v < min) return max;
+          if (v > max) return min;
+          return v;
+        }
+        inputEl.addEventListener('change', function() {
+          let v = parseInt(this.value, 10);
+          if (isNaN(v)) return;
+          v = clampAndLoop(v);
+          this.value = String(v).padStart(2, '0');
+        });
+        inputEl.addEventListener('blur', function() {
+          let v = parseInt(this.value, 10);
+          if (isNaN(v)) return;
+          v = clampAndLoop(v);
+          this.value = String(v).padStart(2, '0');
+        });
+        inputEl.addEventListener('keydown', function(e) {
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            let v = parseInt(this.value, 10);
+            if (isNaN(v)) v = min;
+            else v = v + 1;
+            if (v > max) v = min;
+            this.value = String(v).padStart(2, '0');
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            let v = parseInt(this.value, 10);
+            if (isNaN(v)) v = min;
+            else v = v - 1;
+            if (v < min) v = max;
+            this.value = String(v).padStart(2, '0');
+          }
+        });
+      }
+
+      function parseDate(dateStr) {
+        if (!dateStr) return ['', '', ''];
+        const parts = dateStr.split('-');
+        return [parts[0] || '', parts[1] || '', parts[2] || ''];
+      }
+
+      // ---------- 渲染 ----------
+      function render() {
+        const container = document.getElementById('daysContainer');
+        container.innerHTML = '';
+        if (!state || state.length === 0) {
+          container.innerHTML = '<div style="padding:60px;text-align:center;color:#5B6B85;">暂无数据，请添加一天</div>';
+          return;
+        }
+
+        state.forEach((day, dayIndex) => {
+          const dayColor = getDayColor(dayIndex);
+          const section = document.createElement('div');
+          section.className = 'day-section';
+          section.dataset.dayIndex = dayIndex;
+
+          const header = document.createElement('div');
+          header.className = 'day-header';
+          header.style.setProperty('--day-color', dayColor);
+          header.style.background = dayColor;
+
+          const titleDiv = document.createElement('div');
+          titleDiv.className = 'day-title';
+          titleDiv.innerHTML = `<span class="day-num">Day ${day.day || (dayIndex+1)}</span>
+            <span class="day-date" data-day-index="${dayIndex}" title="点击编辑日期">${day.date || '未设置'}</span>`;
+
+          titleDiv.querySelector('.day-date').addEventListener('click', (e) => { e.stopPropagation(); openDateModal(dayIndex); });
+
+          const rightGroup = document.createElement('div');
+          rightGroup.className = 'day-header-right';
+
+          const insertBtn = document.createElement('button');
+          insertBtn.className = 'btn-action';
+          insertBtn.innerHTML = '↩ 插入一天';
+          insertBtn.title = '在当前天前面插入一天';
+          insertBtn.addEventListener('click', (e) => { e.stopPropagation(); insertDay(dayIndex); });
+
+          const addBtn = document.createElement('button');
+          addBtn.className = 'btn-action';
+          addBtn.innerHTML = '＋ 添加地点';
+          addBtn.addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, -1); });
+
+          const themeBtn = document.createElement('button');
+          themeBtn.className = 'btn-theme';
+          themeBtn.innerHTML = '🎨';
+          themeBtn.title = '修改主题色';
+          themeBtn.addEventListener('click', (e) => { e.stopPropagation(); openColorModal(dayIndex); });
+
+          const deleteDayBtn = document.createElement('button');
+          deleteDayBtn.className = 'btn-delete-day';
+          deleteDayBtn.innerHTML = '×';
+          deleteDayBtn.title = '删除这一天';
+          deleteDayBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteDay(dayIndex); });
+
+          rightGroup.appendChild(insertBtn);
+          rightGroup.appendChild(addBtn);
+          rightGroup.appendChild(themeBtn);
+          rightGroup.appendChild(deleteDayBtn);
+
+          header.appendChild(titleDiv);
+          header.appendChild(rightGroup);
+          section.appendChild(header);
+
+          const spotsArea = document.createElement('div');
+          spotsArea.className = 'spots-area';
+          const flowContainer = document.createElement('div');
+          flowContainer.className = 'flow-container';
+          spotsArea.appendChild(flowContainer);
+
+          container.appendChild(section);
+          section.appendChild(spotsArea);
+
+          requestAnimationFrame(() => {
+            const containerWidth = spotsArea.clientWidth - 40;
+            const perRow = calcPerRow(containerWidth || 800);
+            const spots = day.spots || [];
+            const rows = [];
+            for (let i = 0; i < spots.length; i += perRow) rows.push(spots.slice(i, i + perRow));
+
+            if (rows.length === 0) {
+              const emptyTip = document.createElement('div');
+              emptyTip.style.padding = '30px 0';
+              emptyTip.style.textAlign = 'center';
+              emptyTip.style.color = '#5B6B85';
+              emptyTip.textContent = '暂无地点，点击上方按钮添加';
+              flowContainer.appendChild(emptyTip);
+              return;
+            }
+
+            const NODE_WIDTH = 200;
+            const rowNodes = [];
+
+            rows.forEach((rowSpots, rowIndex) => {
+              const isEvenRow = rowIndex % 2 === 0;
+              const visualOrder = isEvenRow ? [...rowSpots] : [...rowSpots].reverse();
+
+              const rowNodeList = [];
+              visualOrder.forEach((spot, colIndex) => {
+                let originalIndex;
+                if (isEvenRow) {
+                  originalIndex = rowIndex * perRow + colIndex;
+                } else {
+                  originalIndex = rowIndex * perRow + (rowSpots.length - 1 - colIndex);
+                }
+                if (originalIndex >= spots.length) return;
+
+                const node = document.createElement('div');
+                node.className = 'spot-node';
+                node.style.borderColor = dayColor;
+                node.dataset.dayIndex = dayIndex;
+                node.dataset.spotIndex = originalIndex;
+                node.dataset.row = rowIndex;
+                node.dataset.col = colIndex;
+
+                node.innerHTML = `
+                  <div class="spot-name">${spot.name || '未命名'}</div>
+                  <div class="spot-meta">
+                    <span class="spot-arrive" style="background:${dayColor}">${spot.arriveTime || '--:--'}</span>
+                    <span class="spot-duration">${spot.duration || '时长未定'}</span>
+                  </div>
+                  <div class="node-actions">
+                    <button class="icon-btn edit-spot" title="编辑地点" data-day="${dayIndex}" data-spot="${originalIndex}">✎</button>
+                    <button class="icon-btn delete-spot" title="删除地点" data-day="${dayIndex}" data-spot="${originalIndex}">✕</button>
+                  </div>`;
+
+                node.querySelector('.edit-spot').addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, originalIndex); });
+                node.querySelector('.delete-spot').addEventListener('click', (e) => { e.stopPropagation(); deleteSpot(dayIndex, originalIndex); });
+
+                node.style.position = 'absolute';
+                node.style.width = NODE_WIDTH + 'px';
+                flowContainer.appendChild(node);
+                rowNodeList.push({ node, spot, originalIndex, colIndex });
+              });
+
+              rowNodeList.sort((a, b) => a.colIndex - b.colIndex);
+              rowNodes.push(rowNodeList);
+            });
+
+            layoutAndDrawArrows(flowContainer, rowNodes, dayColor, dayIndex, perRow, spots);
+          });
+        });
+
+        saveToStorage();
+      }
+
+      // ---------- 核心布局与箭头绘制 ----------
+      function layoutAndDrawArrows(container, rowNodes, dayColor, dayIndex, perRow, spots) {
+        if (!container) return;
+        const oldSvg = container.querySelector('.arrow-layer');
+        if (oldSvg) oldSvg.remove();
+        container.querySelectorAll('.transport-label').forEach(el => el.remove());
+
+        const containerWidth = container.clientWidth;
+        const nodeWidth = 200;
+        const ROW_GAP = 125; 
+        const ARROW_HORIZONTAL_GAP = 90;
+        const rowPositions = [];
+        const availableWidth = containerWidth - 20;
+        const offsetX = 10;
+
+        rowNodes.forEach((row, rowIndex) => {
+          const isEven = rowIndex % 2 === 0;
+          const count = row.length;
+          if (count === 0) { rowPositions.push({ nodes: [] }); return; }
+
+          let gap = ARROW_HORIZONTAL_GAP;
+          let totalWidth = count * nodeWidth + (count - 1) * gap;
+          if (totalWidth > availableWidth && count > 1) {
+            gap = Math.max(30, (availableWidth - count * nodeWidth) / (count - 1));
+            totalWidth = count * nodeWidth + (count - 1) * gap;
+          }
+
+          let startLeft;
+          if (isEven) {
+            startLeft = offsetX;
+          } else {
+            startLeft = containerWidth - offsetX - totalWidth;
+          }
+
+          const nodesInRow = [];
+          row.forEach((item, colIndex) => {
+            const left = startLeft + colIndex * (nodeWidth + gap);
+            const top = 20 + rowIndex * ROW_GAP;
+            item.node.style.left = left + 'px';
+            item.node.style.top = top + 'px';
+            const h = item.node.offsetHeight || 96;
+            const w = item.node.offsetWidth || nodeWidth;
+            nodesInRow.push({
+              el: item.node,
+              left, top, width: w, height: h,
+              centerX: left + w/2, centerY: top + h/2,
+              originalIndex: item.originalIndex,
+              spot: item.spot,
+              colIndex: colIndex
+            });
+          });
+          rowPositions.push({ nodes: nodesInRow, gap, startLeft, isEven });
+        });
+
+        let maxBottom = 0;
+        rowPositions.forEach(row => row.nodes.forEach(n => { maxBottom = Math.max(maxBottom, n.top + n.height); }));
+        container.style.height = (maxBottom + 60) + 'px';
+
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('class', 'arrow-layer');
+        svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+
+        const defs = document.createElementNS(svgNS, 'defs');
+        const marker = document.createElementNS(svgNS, 'marker');
+        marker.setAttribute('id', `arrowhead-${dayIndex}`);
+        marker.setAttribute('markerWidth', '8');
+        marker.setAttribute('markerHeight', '8');
+        marker.setAttribute('refX', '7');
+        marker.setAttribute('refY', '4');
+        marker.setAttribute('orient', 'auto');
+        marker.setAttribute('markerUnits', 'strokeWidth');
+        const mp = document.createElementNS(svgNS, 'path');
+        mp.setAttribute('d', 'M0,0 L8,4 L0,8 Z');
+        mp.setAttribute('fill', dayColor);
+        marker.appendChild(mp);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+
+        const arrowInfos = [];
+
+        // 1. 行内水平箭头
+        rowPositions.forEach((row, rowIndex) => {
+          const nodes = row.nodes;
+          const isEven = rowIndex % 2 === 0;
+          for (let i = 0; i < nodes.length - 1; i++) {
+            const fromNode = nodes[i];
+            const toNode = nodes[i+1];
+            const y = (fromNode.centerY + toNode.centerY) / 2;
+
+            let from, to;
+            if (isEven) {
+              from = fromNode;
+              to = toNode;
+            } else {
+              from = toNode;
+              to = fromNode;
+            }
+
+            let x1, x2;
+            if (isEven) {
+              x1 = from.left + from.width;
+              x2 = to.left;
+            } else {
+              x1 = from.left;
+              x2 = to.left + to.width;
+            }
+
+            if (Math.abs(x2 - x1) < 5) continue;
+
+            const path = document.createElementNS(svgNS, 'path');
+            path.setAttribute('d', `M ${x1} ${y} L ${x2} ${y}`);
+            path.setAttribute('stroke', dayColor);
+            path.setAttribute('stroke-width', '2.5');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
+            path.style.pointerEvents = 'stroke';
+            path.style.cursor = 'pointer';
+            svg.appendChild(path);
+
+            const spotIndex = from.originalIndex;
+            const transport = from.spot.transport || '';
+            const transportTime = from.spot.transportTime || '';
+            const labelX = (x1 + x2) / 2;
+            const labelY = y - 18;
+
+            arrowInfos.push({ type: 'horizontal', labelX, labelY, transport, transportTime, spotIndex, dayIndex });
+            path.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, spotIndex); });
+          }
+        });
+
+        // 2. 行间拐弯箭头（1/4圆 + 短垂直指向下一行第一个地点正中间）
+        for (let r = 0; r < rowPositions.length - 1; r++) {
+          const curRow = rowPositions[r];
+          const nextRow = rowPositions[r+1];
+          if (curRow.nodes.length === 0 || nextRow.nodes.length === 0) continue;
+
+          const isCurEven = r % 2 === 0;
+          let fromNode, toNode;
+          if (isCurEven) {
+            fromNode = curRow.nodes[curRow.nodes.length - 1];
+            toNode = nextRow.nodes[nextRow.nodes.length - 1]; 
+          } else {
+            fromNode = curRow.nodes[0];
+            toNode = nextRow.nodes[0]; 
+          }
+          if (!fromNode || !toNode) continue;
+
+          const targetCenterX = toNode.centerX;
+          const radius = 35;
+          let startX, startY, endX, endY, pathD, labelX, labelY;
+
+          if (isCurEven) {
+            startX = fromNode.left + fromNode.width;
+            startY = fromNode.centerY;
+            endX = targetCenterX;
+            endY = toNode.top;
+            
+            const dist = Math.abs(endX - startX);
+            const actualRadius = Math.min(radius, dist);
+            
+            pathD = `M ${startX} ${startY} L ${endX - actualRadius} ${startY} A ${actualRadius} ${actualRadius} 0 0 1 ${endX} ${startY + actualRadius} L ${endX} ${endY}`;
+            
+            labelX = (startX + endX) / 2;
+            labelY = startY + actualRadius / 2 - 20;
+          } else {
+            startX = fromNode.left;
+            startY = fromNode.centerY;
+            endX = targetCenterX;
+            endY = toNode.top;
+            
+            const dist = Math.abs(startX - endX);
+            const actualRadius = Math.min(radius, dist);
+            
+            pathD = `M ${startX} ${startY} L ${endX + actualRadius} ${startY} A ${actualRadius} ${actualRadius} 0 0 0 ${endX} ${startY + actualRadius} L ${endX} ${endY}`;
+            
+            labelX = (startX + endX) / 2;
+            labelY = startY + actualRadius / 2 - 20;
+          }
+
+          const path = document.createElementNS(svgNS, 'path');
+          path.setAttribute('d', pathD);
+          path.setAttribute('stroke', dayColor);
+          path.setAttribute('stroke-width', '2.5');
+          path.setAttribute('fill', 'none');
+          path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
+          path.style.pointerEvents = 'stroke';
+          path.style.cursor = 'pointer';
+          svg.appendChild(path);
+
+          const spotIndex = fromNode.originalIndex;
+          const transport = fromNode.spot.transport || '';
+          const transportTime = fromNode.spot.transportTime || '';
+          arrowInfos.push({ type: 'bend', labelX, labelY, transport, transportTime, spotIndex, dayIndex });
+          path.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, spotIndex); });
+        }
+
+        container.appendChild(svg);
+
+        // 3. 交通标注
+        arrowInfos.forEach(info => {
+          const label = document.createElement('div');
+          label.className = 'transport-label';
+          const modeText = info.transport || '—';
+          const timeText = info.transportTime || '—';
+          label.innerHTML = `<span class="trans-mode">${modeText}</span><span class="trans-time">${timeText}</span>`;
+          if (!info.transport && !info.transportTime) label.classList.add('empty-placeholder');
+          let left = info.labelX - 40;
+          let top = info.labelY - 22;
+          if (info.type === 'horizontal') top = info.labelY - 28;
+          else top = info.labelY - 30;
+          label.style.left = left + 'px';
+          label.style.top = top + 'px';
+          label.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, info.dayIndex, info.spotIndex); });
+          container.appendChild(label);
+        });
+
+        container.style.minHeight = (maxBottom + 80) + 'px';
+      }
+
+      function rerenderAll() { render(); saveToStorage(); }
+
+      // ---------- 弹窗控制 ----------
+      function openSpotModal(dayIndex, spotIndex) {
+        const modal = document.getElementById('spotModal');
+        const title = document.getElementById('modalTitle');
+        document.getElementById('editDayIndex').value = dayIndex;
+        document.getElementById('editSpotIndex').value = spotIndex;
+
+        document.getElementById('spotNameInput').value = '';
+        document.getElementById('spotArriveHour').value = '';
+        document.getElementById('spotArriveMinute').value = '';
+        document.getElementById('spotDurationValue').value = '';
+        document.getElementById('spotTransportInput').value = '';
+        document.getElementById('spotTransportTimeInput').value = '';
+
+        let isFirstSpot = false;
+        if (spotIndex === -1) {
+          isFirstSpot = (state[dayIndex].spots.length === 0);
+        } else {
+          isFirstSpot = (spotIndex === 0);
+        }
+
+        const transportGroup = document.getElementById('transportGroup');
+        const transportTimeGroup = document.getElementById('transportTimeGroup');
+        
+        if (isFirstSpot) {
+          transportGroup.style.display = 'none';
+          transportTimeGroup.style.display = 'none';
+        } else {
+          transportGroup.style.display = 'block';
+          transportTimeGroup.style.display = 'block';
+        }
+
+        if (spotIndex === -1) {
+          title.textContent = '添加地点';
+        } else {
+          title.textContent = '编辑地点';
+          const spot = state[dayIndex].spots[spotIndex];
+          document.getElementById('spotNameInput').value = spot.name || '';
+          if (spot.arriveTime && spot.arriveTime.includes(':')) {
+            const [h, m] = spot.arriveTime.split(':');
+            document.getElementById('spotArriveHour').value = h;
+            document.getElementById('spotArriveMinute').value = m;
+          }
+          const durVal = parseDuration(spot.duration);
+          document.getElementById('spotDurationValue').value = durVal;
+          
+          if (spotIndex > 0) {
+            const prevSpot = state[dayIndex].spots[spotIndex - 1];
+            document.getElementById('spotTransportInput').value = prevSpot.transport || '';
+            const transTimeVal = parseTransportTime(prevSpot.transportTime);
+            document.getElementById('spotTransportTimeInput').value = transTimeVal;
+          }
+        }
+        modal.classList.add('active');
+      }
+
+      function openDateModal(dayIndex) {
+        document.getElementById('editDateDayIndex').value = dayIndex;
+        const [y, m, d] = parseDate(state[dayIndex].date || '');
+        document.getElementById('dateYearInput').value = y;
+        document.getElementById('dateMonthInput').value = m;
+        document.getElementById('dateDayInput').value = d;
+        document.getElementById('dateModal').classList.add('active');
+      }
+
+      function openColorModal(dayIndex) {
+        document.getElementById('editColorDayIndex').value = dayIndex;
+        const currentColor = getDayColor(dayIndex).toLowerCase();
+        const grid = document.getElementById('colorGrid');
+        grid.innerHTML = '';
+        PRESET_COLORS.forEach(color => {
+          const swatch = document.createElement('div');
+          swatch.className = 'color-swatch' + (color.toLowerCase() === currentColor ? ' selected' : '');
+          swatch.style.background = color;
+          swatch.dataset.color = color;
+          swatch.addEventListener('click', () => {
+            grid.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+            swatch.classList.add('selected');
+            document.getElementById('customColorInput').value = color;
+          });
+          grid.appendChild(swatch);
+        });
+        document.getElementById('customColorInput').value = currentColor;
+        document.getElementById('colorModal').classList.add('active');
+      }
+
+      function openTransportPopover(x, y, dayIndex, spotIndex) {
+        const popover = document.getElementById('transportPopover');
+        const spot = state[dayIndex]?.spots?.[spotIndex];
+        if (!spot) return;
+        document.getElementById('transportModeInput').value = spot.transport || '';
+        const timeVal = parseTransportTime(spot.transportTime);
+        document.getElementById('transportTimeInput').value = timeVal;
+
+        const popW = 240, popH = 200;
+        let left = x - popW / 2;
+        let top = y + 10;
+        if (left + popW > window.innerWidth - 10) left = window.innerWidth - popW - 10;
+        if (left < 10) left = 10;
+        if (top + popH > window.innerHeight - 10) {
+          top = y - popH - 10;
+        }
+        if (top < 10) top = 10;
+
+        popover.style.left = left + 'px';
+        popover.style.top = top + 'px';
+        popover.classList.add('active');
+        activeTransportTarget = { dayIndex, spotIndex };
+      }
+
+      function closeTransportPopover() {
+        document.getElementById('transportPopover').classList.remove('active');
+        activeTransportTarget = null;
+      }
+
+      function deleteSpot(dayIndex, spotIndex) {
+        if (!confirm('确定删除该地点吗？')) return;
+        state[dayIndex].spots.splice(spotIndex, 1);
+        rerenderAll();
+      }
+
+      // 删除一天
+      function deleteDay(dayIndex) {
+        if (state.length <= 1) {
+          alert('至少需要保留一天哦！');
+          return;
+        }
+        if (!confirm(`确定要删除 Day ${dayIndex + 1} 及其所有地点吗？`)) return;
+        
+        state.splice(dayIndex, 1);
+        
+        // 重新编号
+        state.forEach((d, i) => {
+          d.day = i + 1;
+        });
+        
+        // 重新顺延日期
+        if (state.length > 0 && state[0].date) {
+          let currDate = new Date(state[0].date);
+          if (!isNaN(currDate.getTime())) {
+            for (let i = 1; i < state.length; i++) {
+              currDate.setDate(currDate.getDate() + 1);
+              const y = currDate.getFullYear();
+              const m = String(currDate.getMonth() + 1).padStart(2, '0');
+              const d = String(currDate.getDate()).padStart(2, '0');
+              state[i].date = `${y}-${m}-${d}`;
+            }
+          }
+        }
+
+        rerenderAll();
+      }
+
+      // 插入一天（在当前天之前插入）
+      function insertDay(dayIndex) {
+        let newDateStr = '';
+        if (dayIndex > 0 && state[dayIndex - 1].date) {
+          // 如果有前一天，取前一天的日期 + 1 天
+          let currDate = new Date(state[dayIndex - 1].date);
+          if (!isNaN(currDate.getTime())) {
+            currDate.setDate(currDate.getDate() + 1);
+            const y = currDate.getFullYear();
+            const m = String(currDate.getMonth() + 1).padStart(2, '0');
+            const d = String(currDate.getDate()).padStart(2, '0');
+            newDateStr = `${y}-${m}-${d}`;
+          }
+        }
+        
+        if (!newDateStr) {
+          // 如果是第一天的插入，取当前天日期
+          let currDate = new Date(state[dayIndex].date);
+          if (isNaN(currDate.getTime())) currDate = new Date();
+          const y = currDate.getFullYear();
+          const m = String(currDate.getMonth() + 1).padStart(2, '0');
+          const d = String(currDate.getDate()).padStart(2, '0');
+          newDateStr = `${y}-${m}-${d}`;
+        }
+
+        // 插入数据
+        state.splice(dayIndex, 0, {
+          day: dayIndex + 1,
+          date: newDateStr,
+          spots: []
+        });
+
+        // 重新排序所有 Day 序号，并顺延日期
+        state.forEach((d, i) => {
+          d.day = i + 1;
+        });
+
+        if (state.length > 0 && state[0].date) {
+          let currDate = new Date(state[0].date);
+          if (!isNaN(currDate.getTime())) {
+            for (let i = 1; i < state.length; i++) {
+              currDate.setDate(currDate.getDate() + 1);
+              const y = currDate.getFullYear();
+              const m = String(currDate.getMonth() + 1).padStart(2, '0');
+              const d = String(currDate.getDate()).padStart(2, '0');
+              state[i].date = `${y}-${m}-${d}`;
+            }
+          }
+        }
+
+        rerenderAll();
+      }
+
+      // ---------- 事件绑定 ----------
+      function initEvents() {
+        document.getElementById('addDayBtn').addEventListener('click', addDay);
+        document.getElementById('addDayBtnBottom').addEventListener('click', addDay);
+
+        // 保存为图片
+        document.getElementById('exportImgBtn').addEventListener('click', () => {
+          const app = document.getElementById('appContainer');
+          app.classList.add('exporting'); // 隐藏编辑按钮等
+          
+          html2canvas(app, {
+            scale: 2, // 高清
+            backgroundColor: '#F7F9FC',
+            useCORS: true
+          }).then(canvas => {
+            app.classList.remove('exporting');
+            const link = document.createElement('a');
+            link.download = '旅游攻略.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          }).catch(err => {
+            app.classList.remove('exporting');
+            alert('导出图片失败，请检查网络或重试');
+          });
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+          const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'travel-itinerary.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        });
+
+        document.getElementById('saveSpotBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const dayIndex = parseInt(document.getElementById('editDayIndex').value, 10);
+          const spotIndex = parseInt(document.getElementById('editSpotIndex').value, 10);
+          const name = document.getElementById('spotNameInput').value.trim();
+
+          let hour = document.getElementById('spotArriveHour').value.trim();
+          let minute = document.getElementById('spotArriveMinute').value.trim();
+          if (!hour && !minute) { alert('请输入到达时间'); return; }
+          hour = String(hour || '00').padStart(2, '0');
+          minute = String(minute || '00').padStart(2, '0');
+          const arriveTime = `${hour}:${minute}`;
+
+          let durVal = document.getElementById('spotDurationValue').value.trim();
+          if (!durVal) { alert('请输入游玩时长'); return; }
+          const duration = `${durVal}小时`;
+
+          const isFirst = (spotIndex === 0 || (spotIndex === -1 && state[dayIndex].spots.length === 0));
+          const transport = isFirst ? '' : document.getElementById('spotTransportInput').value.trim();
+          let transTimeVal = isFirst ? '' : document.getElementById('spotTransportTimeInput').value.trim();
+          const transportTime = transTimeVal ? `${transTimeVal}分钟` : '';
+
+          if (!name) { alert('请输入地点名称'); return; }
+          if (isNaN(dayIndex) || !state[dayIndex]) { alert('数据异常，请刷新页面'); return; }
+
+          if (spotIndex === -1) {
+            const newSpot = {
+              name,
+              arriveTime,
+              duration,
+              transport: '',
+              transportTime: ''
+            };
+            state[dayIndex].spots.push(newSpot);
+            const newIdx = state[dayIndex].spots.length - 1;
+            if (newIdx > 0 && !isFirst) {
+              state[dayIndex].spots[newIdx - 1].transport = transport;
+              state[dayIndex].spots[newIdx - 1].transportTime = transportTime;
+            }
+          } else {
+            if (!state[dayIndex].spots[spotIndex]) { alert('地点不存在'); return; }
+            const spot = state[dayIndex].spots[spotIndex];
+            spot.name = name;
+            spot.arriveTime = arriveTime;
+            spot.duration = duration;
+            if (spotIndex > 0 && !isFirst) {
+              state[dayIndex].spots[spotIndex - 1].transport = transport;
+              state[dayIndex].spots[spotIndex - 1].transportTime = transportTime;
+            }
+          }
+
+          document.getElementById('spotModal').classList.remove('active');
+          rerenderAll();
+        });
+
+        document.getElementById('cancelSpotBtn').addEventListener('click', () => {
+          document.getElementById('spotModal').classList.remove('active');
+        });
+
+        document.getElementById('saveDateBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const dayIndex = parseInt(document.getElementById('editDateDayIndex').value, 10);
+          if (isNaN(dayIndex) || !state[dayIndex]) return;
+
+          const y = document.getElementById('dateYearInput').value.trim();
+          const m = document.getElementById('dateMonthInput').value.trim();
+          const d = document.getElementById('dateDayInput').value.trim();
+          let dateStr = '';
+          if (y || m || d) {
+            dateStr = `${y || '2000'}-${String(m || '01').padStart(2, '0')}-${String(d || '01').padStart(2, '0')}`;
+          }
+          
+          state[dayIndex].date = dateStr;
+
+          if (dateStr) {
+            let currDate = new Date(dateStr);
+            if (!isNaN(currDate.getTime())) {
+              for (let i = dayIndex + 1; i < state.length; i++) {
+                currDate.setDate(currDate.getDate() + 1);
+                const nextY = currDate.getFullYear();
+                const nextM = String(currDate.getMonth() + 1).padStart(2, '0');
+                const nextD = String(currDate.getDate()).padStart(2, '0');
+                state[i].date = `${nextY}-${nextM}-${nextD}`;
+              }
+            }
+          }
+
+          document.getElementById('dateModal').classList.remove('active');
+          rerenderAll();
+        });
+
+        document.getElementById('cancelDateBtn').addEventListener('click', () => {
+          document.getElementById('dateModal').classList.remove('active');
+        });
+
+        document.getElementById('saveColorBtn').addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const dayIndex = parseInt(document.getElementById('editColorDayIndex').value, 10);
+          if (isNaN(dayIndex) || !state[dayIndex]) return;
+
+          const selected = document.querySelector('.color-swatch.selected');
+          let color = '';
+          if (selected) {
+            color = selected.dataset.color;
+          } else {
+            color = document.getElementById('customColorInput').value;
+          }
+          state[dayIndex].themeColor = color;
+          document.getElementById('colorModal').classList.remove('active');
+          rerenderAll();
+        });
+
+        document.getElementById('customColorInput').addEventListener('input', function() {
+          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        });
+
+        document.getElementById('cancelColorBtn').addEventListener('click', () => {
+          document.getElementById('colorModal').classList.remove('active');
+        });
+
+        document.getElementById('saveTransportBtn').addEventListener('click', function() {
+          if (!activeTransportTarget) return;
+          const { dayIndex, spotIndex } = activeTransportTarget;
+          const mode = document.getElementById('transportModeInput').value.trim();
+          let timeVal = document.getElementById('transportTimeInput').value.trim();
+          let timeStr = '';
+          if (timeVal) {
+            timeStr = `${timeVal}分钟`;
+          }
+          if (state[dayIndex]?.spots?.[spotIndex]) {
+            state[dayIndex].spots[spotIndex].transport = mode;
+            state[dayIndex].spots[spotIndex].transportTime = timeStr;
+          }
+          closeTransportPopover();
+          rerenderAll();
+        });
+
+        document.getElementById('cancelTransportBtn').addEventListener('click', closeTransportPopover);
+
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.transport-popover') && !e.target.closest('.transport-label') && !e.target.closest('path')) {
+            closeTransportPopover();
+          }
+        });
+
+        const hourInput = document.getElementById('spotArriveHour');
+        const minuteInput = document.getElementById('spotArriveMinute');
+        setupTimeInputLoop(hourInput, 0, 23);
+        setupTimeInputLoop(minuteInput, 0, 59);
+
+        let timer;
+        window.addEventListener('resize', () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => render(), 200);
+        });
+      }
+
+      function addDay() {
+        let newDateStr = '';
+        if (state.length > 0) {
+          const lastDay = state[state.length - 1];
+          let currDate = new Date(lastDay.date);
+          
+          if (isNaN(currDate.getTime())) {
+            currDate = new Date(); 
+          } else {
+            currDate.setDate(currDate.getDate() + 1);
+          }
+          
+          const y = currDate.getFullYear();
+          const m = String(currDate.getMonth() + 1).padStart(2, '0');
+          const d = String(currDate.getDate()).padStart(2, '0');
+          newDateStr = `${y}-${m}-${d}`;
+        } else {
+          const today = new Date();
+          const y = today.getFullYear();
+          const m = String(today.getMonth() + 1).padStart(2, '0');
+          const d = String(today.getDate()).padStart(2, '0');
+          newDateStr = `${y}-${m}-${d}`;
+        }
+
+        state.push({
+          day: state.length + 1,
+          date: newDateStr,
+          spots: []
+        });
+        rerenderAll();
+      }
+
+      function init() {
+        initEvents();
+        render();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
