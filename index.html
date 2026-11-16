@@ -1,3 +1,8 @@
+太棒了，就差这最后一步！这次我把交通标签的左侧对齐位置，紧紧挨着粗直线（距离线只有 8px），绝对不会再飘到右边去了。
+
+以下是最终的完整代码，全选复制并覆盖你的 `index.html` 即可：
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,18 +153,16 @@
       /* 手机端纵向连接线容器 */
       .mobile-arrow-row {
         width: 100%;
+        position: relative;
+        height: 70px;
         display: flex;
         align-items: center;
-        margin: 0; /* 移除上下margin，用内部height控制 */
-        padding: 0 10%;
-        position: relative;
-        height: 70px; /* 固定高度确保连线好画 */
       }
 
       /* 纯色粗直线 */
       .mobile-vertical-line {
         position: absolute;
-        left: calc(10% + 15%); /* 控制在偏左位置 */
+        left: 25%; /* 偏左位置 */
         top: 0;
         bottom: 0;
         width: 2.5px; /* 和边框一样粗 */
@@ -167,12 +170,12 @@
         z-index: 0;
       }
       
-      /* 手机端交通标签（放在线右侧） */
+      /* 手机端交通标签（紧紧挨着线右侧） */
       .mobile-transport-label {
-        position: relative;
-        z-index: 1;
-        margin-left: auto; /* 靠右对齐 */
-        margin-right: 15%;
+        position: absolute;
+        left: calc(25% + 8px); /* 只有 8px 间距！ */
+        top: 50%;
+        transform: translateY(-50%);
         display: inline-flex;
         flex-direction: column;
         background: white;
@@ -183,6 +186,7 @@
         font-size: 0.75rem;
         color: #0A2540;
         white-space: nowrap;
+        z-index: 1;
       }
       
       .bottom-add-day-container {
@@ -359,7 +363,7 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'travel_flowchart_data_v38';
+      const STORAGE_KEY = 'travel_flowchart_data_v39';
 
       function getDateStr(offset = 0) {
         const d = new Date();
@@ -1386,3 +1390,4 @@
   </script>
 </body>
 </html>
+```
