@@ -10,9 +10,10 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
     body { background: #F7F9FC; color: #0A2540; padding: 24px 16px 100px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
     .app { width: 100%; max-width: 1920px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    
     .page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 0 8px; }
     .page-header h1 { font-weight: 700; font-size: 2rem; letter-spacing: 1px; color: #0A2540; border-left: 6px solid #C9A227; padding-left: 18px; }
-    .global-actions { display: flex; gap: 12px; }
+    .global-actions { display: flex; gap: 12px; flex-wrap: wrap; }
     .btn { border: none; border-radius: 30px; padding: 10px 22px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; background: white; color: #0A2540; border: 1.5px solid #0A2540; box-shadow: 0 2px 8px rgba(10,37,64,0.08); }
     .btn-primary { background: #0A2540; color: white; border: 1.5px solid #0A2540; }
     .btn-primary:hover { background: #1B2A4A; border-color: #1B2A4A; }
@@ -25,7 +26,7 @@
     .day-date { font-size: 1rem; opacity: 0.95; cursor: pointer; border-bottom: 1px dashed rgba(255,255,255,0.6); padding: 2px 4px; }
     .day-date:hover { border-bottom-color: white; }
     
-    /* 右侧按钮组 */
+    /* 按钮组 */
     .day-header-right { display: flex; align-items: center; gap: 6px; }
     .day-header .btn-action { background: transparent; border: 1.5px solid white; color: white; border-radius: 30px; padding: 5px 14px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s; box-shadow: none; white-space: nowrap; }
     .day-header .btn-action:hover { background: white; color: var(--day-color, #0A2540); }
@@ -34,6 +35,7 @@
     .day-header .btn-delete-day { background: transparent; border: 1.5px solid rgba(255,255,255,0.6); color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.15s; box-shadow: none; padding: 0; flex-shrink: 0; line-height: 1; }
     .day-header .btn-delete-day:hover { background: rgba(255,255,255,0.2); border-color: white; }
 
+    /* 电脑端流水线区 */
     .spots-area { padding: 24px 20px 32px; position: relative; background: white; min-height: 140px; }
     .flow-container { position: relative; width: 100%; }
     .spot-node { width: 200px; min-width: 160px; background: white; border: 1.8px solid #0A2540; border-radius: 100px; padding: 14px 12px 14px 22px; box-shadow: 0 2px 8px rgba(10,37,64,0.08); position: relative; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
@@ -47,15 +49,18 @@
     .icon-btn { background: white; border: 1.2px solid #0A2540; color: #0A2540; width: 26px; height: 26px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); padding: 0; line-height: 1; }
     .icon-btn:hover { background: #0A2540; color: white; }
     
+    /* 箭头图层 */
     .arrow-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
     .arrow-layer svg { display: block; width: 100%; height: 100%; overflow: visible; }
     
+    /* 交通标签 */
     .transport-label { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: rgba(255,255,255,0.9); backdrop-filter: blur(2px); padding: 2px 10px; border-radius: 40px; box-shadow: 0 2px 6px rgba(10,37,64,0.1); border: 1px solid rgba(10,37,64,0.15); pointer-events: auto; cursor: pointer; font-size: 0.75rem; color: #0A2540; white-space: nowrap; z-index: 5; line-height: 1.4; min-width: 70px; text-align: center; }
     .transport-label:hover { background: white; border-color: #0A2540; }
     .transport-label .trans-mode { font-weight: 600; color: #0A2540; font-size: 0.8rem; }
     .transport-label .trans-time { color: #5B6B85; font-size: 0.7rem; }
     .transport-label.empty-placeholder { opacity: 0.5; font-style: italic; border-style: dashed; }
     
+    /* 弹窗通用 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,37,64,0.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; visibility: hidden; opacity: 0; transition: opacity 0.2s, visibility 0.2s; }
     .modal-overlay.active { visibility: visible; opacity: 1; }
     .modal-card { background: white; border-radius: 28px; box-shadow: 0 20px 40px rgba(10,37,64,0.2); padding: 28px 26px; max-width: 420px; width: 90%; border: 1px solid rgba(10,37,64,0.1); }
@@ -80,12 +85,14 @@
     .btn-sm-primary:hover { background: #163A5F; }
     .btn-sm:hover { background: #0A2540; color: white; }
     
+    /* 交通浮层 */
     .transport-popover { position: fixed; background: white; border-radius: 20px; box-shadow: 0 12px 30px rgba(10,37,64,0.25); padding: 16px; width: 240px; border: 1px solid rgba(10,37,64,0.15); z-index: 2000; display: none; }
     .transport-popover.active { display: block; }
     .transport-popover .form-group { margin-bottom: 10px; }
     .transport-popover input { padding: 8px 12px; font-size: 0.85rem; border-radius: 30px; }
     .popover-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
     
+    /* 颜色选择器 */
     .color-picker-modal .modal-card { max-width: 360px; }
     .color-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
     .color-swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
@@ -95,6 +102,9 @@
     .color-custom-row input[type="color"] { width: 50px; height: 40px; border: 1.5px solid #D0D8E5; border-radius: 12px; padding: 2px; cursor: pointer; background: white; }
     .color-custom-row span { font-size: 0.85rem; color: #5B6B85; }
     .popover-actions-center { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
+
+    /* 电脑端底部按钮居中 */
+    .bottom-add-day-container { display: flex; justify-content: center; margin-top: 8px; width: 100%; }
     
     /* 导出截图时的优化 */
     .exporting .node-actions { display: none !important; }
@@ -102,70 +112,53 @@
     .exporting .btn-theme { display: none !important; }
     .exporting .btn-delete-day { display: none !important; }
 
-    /* ================= 手机端专属深度优化 ================= */
+    /* ================= 📱 手机端大改：垂直时间轴 ================= */
     @media (max-width: 768px) {
       body { padding: 12px 8px 100px; }
       .page-header { flex-direction: column; align-items: flex-start; padding: 0 4px; }
       .page-header h1 { font-size: 1.5rem; padding-left: 10px; border-left-width: 4px; }
       
-      /* 顶部按钮变成均分两排 */
       .global-actions { width: 100%; flex-wrap: wrap; gap: 8px; }
       .global-actions .btn { flex: 1; text-align: center; padding: 8px 10px; font-size: 0.85rem; }
       
-      /* 天数卡片优化 */
       .day-section { border-radius: 16px; }
       .day-header { padding: 10px 14px; gap: 8px; }
-      .day-title { gap: 8px; }
+      .day-title { gap: 8px; width: 100%; justify-content: space-between; }
       .day-num { font-size: 1.1rem; }
       .day-date { font-size: 0.9rem; }
       
-      /* 按钮组更紧凑 */
-      .day-header-right { gap: 4px; flex-wrap: wrap; justify-content: flex-end; flex: 1; }
-      .day-header .btn-action { padding: 4px 8px; font-size: 0.75rem; }
-      .day-header .btn-theme, .day-header .btn-delete-day { width: 26px; height: 26px; font-size: 14px; }
+      .day-header { flex-direction: column; align-items: stretch; }
+      .day-header-right { width: 100%; justify-content: space-between; gap: 4px; }
+      .day-header .btn-action { flex: 1; padding: 6px 0; font-size: 0.8rem; text-align: center; }
+      .day-header .btn-theme, .day-header .btn-delete-day { width: 32px; height: 32px; font-size: 15px; }
       
-      .spots-area { padding: 16px 10px 24px; }
+      .spots-area { padding: 20px 10px 30px; }
       
-      /* 节点尺寸缩小，适配双列排版 */
-      .spot-node { width: 140px; min-width: 130px; padding: 10px 8px 10px 14px; border-radius: 60px; }
-      .spot-name { font-size: 0.95rem; padding-right: 24px; }
-      .spot-meta { gap: 4px; }
-      .spot-arrive { font-size: 0.65rem; padding: 2px 8px; }
-      .spot-duration { font-size: 0.6rem; padding: 2px 8px; border-width: 1px; }
+      .spot-node { width: 90% !important; max-width: 320px; margin: 0 auto; border-radius: 16px; padding: 16px; align-items: center; text-align: center; }
+      .spot-name { font-size: 1.1rem; padding-right: 0; text-align: center; margin-bottom: 4px; }
+      .spot-meta { justify-content: center; width: 100%; gap: 6px; }
       
-      /* 手机端没有hover，操作按钮常驻显示 */
-      .node-actions { opacity: 1; top: 6px; right: 8px; gap: 4px; }
-      .icon-btn { width: 22px; height: 22px; font-size: 12px; }
+      .node-actions { opacity: 1; top: 10px; right: 10px; }
+      .icon-btn { width: 28px; height: 28px; font-size: 14px; }
       
-      /* 交通标签变小 */
-      .transport-label { font-size: 0.6rem; padding: 2px 6px; min-width: 50px; }
-      .transport-label .trans-mode { font-size: 0.65rem; }
-      .transport-label .trans-time { font-size: 0.55rem; }
+      .transport-label { font-size: 0.65rem; padding: 4px 10px; min-width: 60px; margin: 0 auto; position: static !important; margin-top: 10px; margin-bottom: 10px; display: inline-flex; }
+      .transport-label .trans-mode { font-size: 0.75rem; }
       
-      /* 悬浮的添加天数按钮，方便单手操作 */
-      #addDayBtnBottom {
+      .bottom-add-day-container {
         position: fixed;
         bottom: 24px;
-        right: 24px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        box-shadow: 0 4px 12px rgba(10,37,64,0.3);
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 999;
-        background: #0A2540;
-        color: white;
-        border: none;
+        margin: 0;
       }
-      /* 隐藏悬浮按钮里的文字，只留加号 */
-      #addDayBtnBottom span { display: none; } 
-      #addDayBtnBottom::after { content: '+'; margin-top: -4px;}
+      #addDayBtnBottom {
+        border-radius: 30px;
+        padding: 12px 28px;
+        font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(10,37,64,0.4);
+      }
       
-      /* 弹窗适配手机 */
       .modal-card { padding: 20px; border-radius: 20px; width: 92%; }
       .modal-card h3 { font-size: 1.2rem; margin-bottom: 16px; }
     }
@@ -177,14 +170,29 @@
       <h1>旅游攻略</h1>
       <div class="global-actions">
         <button class="btn btn-primary" id="addDayBtn">+ 添加一天</button>
+        <button class="btn btn-share" id="shareBtn">生成分享链接</button>
         <button class="btn" id="exportImgBtn" style="border-color: #C9A227; color: #C9A227;">保存图片</button>
         <button class="btn" id="exportBtn">导出 JSON</button>
       </div>
     </div>
+    
     <div id="daysContainer" class="app" style="gap: 28px; width:100%;"></div>
-    <div>
-      <!-- 手机端这个按钮会变成右下角的悬浮“+”号 -->
+    
+    <div class="bottom-add-day-container">
       <button class="btn btn-primary" id="addDayBtnBottom">+ 添加一天</button>
+    </div>
+  </div>
+
+  <!-- 分享弹窗 -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal-card" style="text-align: center;">
+      <h3 style="text-align: left;">分享链接已生成</h3>
+      <p style="font-size: 0.85rem; color: #5B6B85; margin-bottom: 16px; text-align: left;">复制以下专属链接发给朋友，他们打开就能直接看到你的行程！</p>
+      <input type="text" id="shareUrlInput" readonly style="width: 100%; padding: 12px; border: 1.5px solid #D0D8E5; border-radius: 12px; background: #F7F9FC; color: #0A2540; font-size: 0.9rem; outline: none; margin-bottom: 20px;">
+      <div class="popover-actions-center">
+        <button type="button" class="btn-sm" id="cancelShareBtn">关闭</button>
+        <button type="button" class="btn-sm btn-sm-primary" id="copyShareBtn">复制链接</button>
+      </div>
     </div>
   </div>
 
@@ -294,7 +302,7 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'travel_flowchart_data_v29';
+      const STORAGE_KEY = 'travel_flowchart_data_v31';
 
       function getDateStr(offset = 0) {
         const d = new Date();
@@ -311,13 +319,37 @@
         { day: 3, date: getDateStr(2), spots: [] }
       ];
 
-      let state = loadFromStorage() || defaultData;
+      // 优先从网址中读取分享数据
+      function getDataFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const dataStr = params.get('data');
+        if (dataStr) {
+          try {
+            // 解码 Base64 (兼容 Unicode)
+            const decodedStr = decodeURIComponent(escape(window.atob(dataStr)));
+            return JSON.parse(decodedStr);
+          } catch(e) {
+            console.error('解析分享数据失败', e);
+          }
+        }
+        return null;
+      }
+
+      const urlData = getDataFromUrl();
+      // 如果有 URL 数据，优先使用 URL 数据（别人点链接看到的状态）
+      // 否则尝试读本地缓存，再否则用默认数据
+      let state = urlData || loadFromStorage() || defaultData;
       let activeTransportTarget = null;
 
       function loadFromStorage() {
         try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
       }
-      function saveToStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      function saveToStorage() { 
+        // 如果有人是通过分享链接打开的，不覆盖本地自己的数据
+        if (!getDataFromUrl()) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
+        }
+      }
 
       const dayColors = ['#0A2540', '#163A5F', '#24507A', '#2E5F8A', '#3A6F9C', '#4A7FAC'];
       const PRESET_COLORS = [
@@ -332,9 +364,8 @@
         return dayColors[dayIndex % dayColors.length];
       }
 
-      // 在手机端，由于屏幕宽度限制，自动把每行节点数控制在2个，体验最好
       function calcPerRow(w) { 
-        if (window.innerWidth <= 768) return 2; 
+        if (window.innerWidth <= 768) return 1;
         let n = Math.floor(w / 290); 
         if (n < 2) n = 2; 
         if (n > 10) n = 10; 
@@ -404,6 +435,8 @@
           container.innerHTML = '<div style="padding:60px;text-align:center;color:#5B6B85;">暂无数据，请添加一天</div>';
           return;
         }
+
+        const isMobile = window.innerWidth <= 768;
 
         state.forEach((day, dayIndex) => {
           const dayColor = getDayColor(dayIndex);
@@ -484,8 +517,12 @@
               return;
             }
 
-            const rowNodes = [];
+            if (isMobile) {
+              renderMobileVertical(flowContainer, spots, dayColor, dayIndex);
+              return;
+            }
 
+            const rowNodes = [];
             rows.forEach((rowSpots, rowIndex) => {
               const isEvenRow = rowIndex % 2 === 0;
               const visualOrder = isEvenRow ? [...rowSpots] : [...rowSpots].reverse();
@@ -523,6 +560,7 @@
                 node.querySelector('.delete-spot').addEventListener('click', (e) => { e.stopPropagation(); deleteSpot(dayIndex, originalIndex); });
 
                 node.style.position = 'absolute';
+                node.style.width = '200px';
                 flowContainer.appendChild(node);
                 rowNodeList.push({ node, spot, originalIndex, colIndex });
               });
@@ -538,7 +576,6 @@
         saveToStorage();
       }
 
-      // ---------- 核心布局与箭头绘制 ----------
       function layoutAndDrawArrows(container, rowNodes, dayColor, dayIndex, perRow, spots) {
         if (!container) return;
         const oldSvg = container.querySelector('.arrow-layer');
@@ -546,14 +583,12 @@
         container.querySelectorAll('.transport-label').forEach(el => el.remove());
 
         const containerWidth = container.clientWidth;
-        const isMobile = window.innerWidth <= 768;
-        const nodeWidth = isMobile ? 140 : 200; // 手机端节点宽度
-        const ROW_GAP = isMobile ? 110 : 125; // 手机端行高
-        const ARROW_HORIZONTAL_GAP = isMobile ? 60 : 90; // 手机端水平间距
-        
+        const nodeWidth = 200;
+        const ROW_GAP = 125; 
+        const ARROW_HORIZONTAL_GAP = 90;
         const rowPositions = [];
-        const availableWidth = containerWidth - 10;
-        const offsetX = 5;
+        const availableWidth = containerWidth - 20;
+        const offsetX = 10;
 
         rowNodes.forEach((row, rowIndex) => {
           const isEven = rowIndex % 2 === 0;
@@ -562,10 +597,8 @@
 
           let gap = ARROW_HORIZONTAL_GAP;
           let totalWidth = count * nodeWidth + (count - 1) * gap;
-          
-          // 如果空间不够，按比例缩小间距
           if (totalWidth > availableWidth && count > 1) {
-            gap = Math.max(20, (availableWidth - count * nodeWidth) / (count - 1));
+            gap = Math.max(30, (availableWidth - count * nodeWidth) / (count - 1));
             totalWidth = count * nodeWidth + (count - 1) * gap;
           }
 
@@ -582,11 +615,8 @@
             const top = 20 + rowIndex * ROW_GAP;
             item.node.style.left = left + 'px';
             item.node.style.top = top + 'px';
-            item.node.style.width = nodeWidth + 'px';
-            
-            const h = item.node.offsetHeight || (isMobile ? 80 : 96);
+            const h = item.node.offsetHeight || 96;
             const w = item.node.offsetWidth || nodeWidth;
-            
             nodesInRow.push({
               el: item.node,
               left, top, width: w, height: h,
@@ -601,7 +631,7 @@
 
         let maxBottom = 0;
         rowPositions.forEach(row => row.nodes.forEach(n => { maxBottom = Math.max(maxBottom, n.top + n.height); }));
-        container.style.height = (maxBottom + 40) + 'px';
+        container.style.height = (maxBottom + 60) + 'px';
 
         const svgNS = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(svgNS, 'svg');
@@ -626,7 +656,6 @@
 
         const arrowInfos = [];
 
-        // 1. 行内水平箭头
         rowPositions.forEach((row, rowIndex) => {
           const nodes = row.nodes;
           const isEven = rowIndex % 2 === 0;
@@ -636,29 +665,19 @@
             const y = (fromNode.centerY + toNode.centerY) / 2;
 
             let from, to;
-            if (isEven) {
-              from = fromNode;
-              to = toNode;
-            } else {
-              from = toNode;
-              to = fromNode;
-            }
+            if (isEven) { from = fromNode; to = toNode; } 
+            else { from = toNode; to = fromNode; }
 
             let x1, x2;
-            if (isEven) {
-              x1 = from.left + from.width;
-              x2 = to.left;
-            } else {
-              x1 = from.left;
-              x2 = to.left + to.width;
-            }
+            if (isEven) { x1 = from.left + from.width; x2 = to.left; } 
+            else { x1 = from.left; x2 = to.left + to.width; }
 
             if (Math.abs(x2 - x1) < 5) continue;
 
             const path = document.createElementNS(svgNS, 'path');
             path.setAttribute('d', `M ${x1} ${y} L ${x2} ${y}`);
             path.setAttribute('stroke', dayColor);
-            path.setAttribute('stroke-width', isMobile ? '2' : '2.5');
+            path.setAttribute('stroke-width', '2.5');
             path.setAttribute('fill', 'none');
             path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
             path.style.pointerEvents = 'stroke';
@@ -669,14 +688,13 @@
             const transport = from.spot.transport || '';
             const transportTime = from.spot.transportTime || '';
             const labelX = (x1 + x2) / 2;
-            const labelY = y - 16;
+            const labelY = y - 18;
 
             arrowInfos.push({ type: 'horizontal', labelX, labelY, transport, transportTime, spotIndex, dayIndex });
             path.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, spotIndex); });
           }
         });
 
-        // 2. 行间拐弯箭头
         for (let r = 0; r < rowPositions.length - 1; r++) {
           const curRow = rowPositions[r];
           const nextRow = rowPositions[r+1];
@@ -694,7 +712,7 @@
           if (!fromNode || !toNode) continue;
 
           const targetCenterX = toNode.centerX;
-          const radius = isMobile ? 25 : 35;
+          const radius = 35;
           let startX, startY, endX, endY, pathD, labelX, labelY;
 
           if (isCurEven) {
@@ -702,33 +720,27 @@
             startY = fromNode.centerY;
             endX = targetCenterX;
             endY = toNode.top;
-            
             const dist = Math.abs(endX - startX);
             const actualRadius = Math.min(radius, dist);
-            
             pathD = `M ${startX} ${startY} L ${endX - actualRadius} ${startY} A ${actualRadius} ${actualRadius} 0 0 1 ${endX} ${startY + actualRadius} L ${endX} ${endY}`;
-            
             labelX = (startX + endX) / 2;
-            labelY = startY + actualRadius / 2 - 16;
+            labelY = startY + actualRadius / 2 - 20;
           } else {
             startX = fromNode.left;
             startY = fromNode.centerY;
             endX = targetCenterX;
             endY = toNode.top;
-            
             const dist = Math.abs(startX - endX);
             const actualRadius = Math.min(radius, dist);
-            
             pathD = `M ${startX} ${startY} L ${endX + actualRadius} ${startY} A ${actualRadius} ${actualRadius} 0 0 0 ${endX} ${startY + actualRadius} L ${endX} ${endY}`;
-            
             labelX = (startX + endX) / 2;
-            labelY = startY + actualRadius / 2 - 16;
+            labelY = startY + actualRadius / 2 - 20;
           }
 
           const path = document.createElementNS(svgNS, 'path');
           path.setAttribute('d', pathD);
           path.setAttribute('stroke', dayColor);
-          path.setAttribute('stroke-width', isMobile ? '2' : '2.5');
+          path.setAttribute('stroke-width', '2.5');
           path.setAttribute('fill', 'none');
           path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
           path.style.pointerEvents = 'stroke';
@@ -744,7 +756,6 @@
 
         container.appendChild(svg);
 
-        // 3. 交通标注
         arrowInfos.forEach(info => {
           const label = document.createElement('div');
           label.className = 'transport-label';
@@ -752,19 +763,100 @@
           const timeText = info.transportTime || '—';
           label.innerHTML = `<span class="trans-mode">${modeText}</span><span class="trans-time">${timeText}</span>`;
           if (!info.transport && !info.transportTime) label.classList.add('empty-placeholder');
-          
-          let left = info.labelX - (isMobile ? 30 : 40);
-          let top = info.labelY - (isMobile ? 16 : 22);
-          if (info.type === 'horizontal') top = info.labelY - (isMobile ? 20 : 28);
-          else top = info.labelY - (isMobile ? 22 : 30);
-          
+          let left = info.labelX - 40;
+          let top = info.labelY - 22;
+          if (info.type === 'horizontal') top = info.labelY - 28;
+          else top = info.labelY - 30;
           label.style.left = left + 'px';
           label.style.top = top + 'px';
           label.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, info.dayIndex, info.spotIndex); });
           container.appendChild(label);
         });
 
-        container.style.minHeight = (maxBottom + 60) + 'px';
+        container.style.minHeight = (maxBottom + 80) + 'px';
+      }
+
+      function renderMobileVertical(container, spots, dayColor, dayIndex) {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:10px 0;';
+
+        spots.forEach((spot, i) => {
+          const node = document.createElement('div');
+          node.className = 'spot-node';
+          node.style.borderColor = dayColor;
+          node.dataset.dayIndex = dayIndex;
+          node.dataset.spotIndex = i;
+          
+          node.innerHTML = `
+            <div class="spot-name">${spot.name || '未命名'}</div>
+            <div class="spot-meta">
+              <span class="spot-arrive" style="background:${dayColor}">${spot.arriveTime || '--:--'}</span>
+              <span class="spot-duration">${spot.duration || '时长未定'}</span>
+            </div>
+            <div class="node-actions">
+              <button class="icon-btn edit-spot" title="编辑地点" data-day="${dayIndex}" data-spot="${i}">✎</button>
+              <button class="icon-btn delete-spot" title="删除地点" data-day="${dayIndex}" data-spot="${i}">✕</button>
+            </div>`;
+
+          node.querySelector('.edit-spot').addEventListener('click', (e) => { e.stopPropagation(); openSpotModal(dayIndex, i); });
+          node.querySelector('.delete-spot').addEventListener('click', (e) => { e.stopPropagation(); deleteSpot(dayIndex, i); });
+          
+          wrapper.appendChild(node);
+
+          if (i < spots.length - 1) {
+            const arrowContainer = document.createElement('div');
+            arrowContainer.style.cssText = 'display:flex;flex-direction:column;align-items:center;margin:12px 0;';
+            
+            const transport = spot.transport || '';
+            const transportTime = spot.transportTime || '';
+            const label = document.createElement('div');
+            label.className = 'transport-label';
+            label.innerHTML = `<span class="trans-mode">${transport || '—'}</span><span class="trans-time">${transportTime || '—'}</span>`;
+            if (!transport && !transportTime) label.classList.add('empty-placeholder');
+            label.addEventListener('click', (e) => { e.stopPropagation(); openTransportPopover(e.clientX, e.clientY, dayIndex, i); });
+            
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.setAttribute('width', '20');
+            svg.setAttribute('height', '30');
+            svg.style.display = 'block';
+            const path = document.createElementNS(svgNS, 'path');
+            path.setAttribute('d', `M 10 0 L 10 25`);
+            path.setAttribute('stroke', dayColor);
+            path.setAttribute('stroke-width', '2.5');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('marker-end', `url(#arrowhead-${dayIndex})`);
+            
+            svg.appendChild(path);
+            arrowContainer.appendChild(label);
+            arrowContainer.appendChild(svg);
+            wrapper.appendChild(arrowContainer);
+          }
+        });
+
+        container.style.height = 'auto';
+        container.appendChild(wrapper);
+
+        const oldSvg = container.querySelector('.arrow-layer');
+        if (oldSvg) oldSvg.remove();
+        const defsSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        defsSvg.setAttribute('class', 'arrow-layer');
+        defsSvg.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;pointer-events:none;';
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', `arrowhead-${dayIndex}`);
+        marker.setAttribute('markerWidth', '8');
+        marker.setAttribute('markerHeight', '8');
+        marker.setAttribute('refX', '4');
+        marker.setAttribute('refY', '7');
+        marker.setAttribute('orient', 'auto');
+        const mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        mp.setAttribute('d', 'M0,0 L8,0 L4,8 Z');
+        mp.setAttribute('fill', dayColor);
+        marker.appendChild(mp);
+        defs.appendChild(marker);
+        defsSvg.appendChild(defs);
+        container.appendChild(defsSvg);
       }
 
       function rerenderAll() { render(); saveToStorage(); }
@@ -966,13 +1058,11 @@
         if (state.length > 0) {
           const lastDay = state[state.length - 1];
           let currDate = new Date(lastDay.date);
-          
           if (isNaN(currDate.getTime())) {
             currDate = new Date(); 
           } else {
             currDate.setDate(currDate.getDate() + 1);
           }
-          
           const y = currDate.getFullYear();
           const m = String(currDate.getMonth() + 1).padStart(2, '0');
           const d = String(currDate.getDate()).padStart(2, '0');
@@ -1018,6 +1108,7 @@
           });
         });
 
+        // 导出 JSON（原本的）
         document.getElementById('exportBtn').addEventListener('click', () => {
           const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
           const a = document.createElement('a');
@@ -1025,6 +1116,34 @@
           a.download = 'travel-itinerary.json';
           a.click();
           URL.revokeObjectURL(a.href);
+        });
+
+        // 生成分享链接
+        document.getElementById('shareBtn').addEventListener('click', () => {
+          const jsonStr = JSON.stringify(state);
+          // 使用 Base64 编码并处理 Unicode 字符
+          const encodedData = window.btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+              return String.fromCharCode('0x' + p1);
+          }));
+          
+          const baseUrl = window.location.origin + window.location.pathname;
+          const shareUrl = `${baseUrl}?data=${encodedData}`;
+          
+          document.getElementById('shareUrlInput').value = shareUrl;
+          document.getElementById('shareModal').classList.add('active');
+        });
+
+        document.getElementById('cancelShareBtn').addEventListener('click', () => {
+          document.getElementById('shareModal').classList.remove('active');
+        });
+
+        document.getElementById('copyShareBtn').addEventListener('click', () => {
+          const input = document.getElementById('shareUrlInput');
+          input.select();
+          input.setSelectionRange(0, 99999);
+          document.execCommand('copy');
+          alert('链接已复制，快去发给朋友吧！');
+          document.getElementById('shareModal').classList.remove('active');
         });
 
         document.getElementById('saveSpotBtn').addEventListener('click', function(e) {
